@@ -1,4 +1,4 @@
-import { getItem, setItem } from "./storage.js";
+import { getItem, setItem } from "./storage.js/storage.js";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
