@@ -1,3 +1,4 @@
+import { getItem, setItem } from "./storage.js";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -724,12 +725,12 @@ export default function App() {
 
   useEffect(()=>{
     (async()=>{
-      try{const r=JSON.parse(localStorage.getItem("sys_users_v2") || "null") !== null ? {value: localStorage.getItem("sys_users_v2")} : null;setUsers(r?JSON.parse(r.value):DEFAULT_USERS);}
+      try{ const v = await getItem("sys_users_v2"); setUsers(v ? JSON.parse(v) : DEFAULT_USERS); }
       catch{setUsers(DEFAULT_USERS);}
       setUL(true);
     })();
   },[]);
-  useEffect(()=>{if(users&&ul) localStorage.setItem("sys_users_v2", JSON.stringify(users));},[users,ul]);
+  useEffect(()=>{if(users&&ul) setItem("sys_users_v2", JSON.stringify(users));},[users,ul]);
 
   if(!ul) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",color:"#999",fontSize:14}}>Cargando...</div>;
   if(!currentUser) return <LoginScreen onLogin={setCU} users={users}/>;
@@ -755,15 +756,15 @@ function Dashboard({ user, users, setUsers, onLogout, onUserUpdated }) {
 
   useEffect(()=>{
     (async()=>{
-      try{const r=JSON.parse(localStorage.getItem("reqs_cliente_v3") || "null") !== null ? {value: localStorage.getItem("reqs_cliente_v3")} : null;setDC(r?JSON.parse(r.value):RAW_DATA.map(d=>({...d,stages:[...d.stages]})));}
+      try{ const vc = await getItem("reqs_cliente_v3"); setDC(vc ? JSON.parse(vc) : RAW_DATA.map(d=>({...d,stages:[...d.stages]}))); }
       catch{setDC(RAW_DATA.map(d=>({...d,stages:[...d.stages]})));}
-      try{const r=JSON.parse(localStorage.getItem("reqs_interno_v3") || "null") !== null ? {value: localStorage.getItem("reqs_interno_v3")} : null;setDI(r?JSON.parse(r.value):[]);}
+      try{ const vi = await getItem("reqs_interno_v3"); setDI(vi ? JSON.parse(vi) : []); }
       catch{setDI([]);}
       setLoaded(true);
     })();
   },[]);
-  useEffect(()=>{if(dataCliente&&loaded) localStorage.setItem("reqs_cliente_v3", JSON.stringify(dataCliente));},[dataCliente,loaded]);
-  useEffect(()=>{if(dataInterno&&loaded) localStorage.setItem("reqs_interno_v3", JSON.stringify(dataInterno));},[dataInterno,loaded]);
+  useEffect(()=>{if(dataCliente&&loaded) setItem("reqs_cliente_v3", JSON.stringify(dataCliente));},[dataCliente,loaded]);
+  useEffect(()=>{if(dataInterno&&loaded) setItem("reqs_interno_v3", JSON.stringify(dataInterno));},[dataInterno,loaded]);
 
   // ── Alertas de vencimiento ────────────────────────────────────────────────
   useEffect(()=>{
@@ -771,7 +772,7 @@ function Dashboard({ user, users, setUsers, onLogout, onUserUpdated }) {
     const checkDueAlerts = async () => {
       // Cargar set de alertas ya enviadas hoy para no duplicar
       let sent = {};
-      try { const r=JSON.parse(localStorage.getItem("due_alerts_sent_v1") || "null") !== null ? {value: localStorage.getItem("due_alerts_sent_v1")} : null; sent=r?JSON.parse(r.value):{}; } catch{}
+      try { const va = await getItem("due_alerts_sent_v1"); sent = va ? JSON.parse(va) : {}; } catch{}
       const today = new Date().toISOString().slice(0,10);
       // Limpiar alertas de días anteriores
       Object.keys(sent).forEach(k=>{ if(!k.startsWith(today)) delete sent[k]; });
@@ -791,7 +792,7 @@ function Dashboard({ user, users, setUsers, onLogout, onUserUpdated }) {
         if(ok){ sent[alertKey]=true; sentCount++; }
       }
       if(sentCount>0){
-        localStorage.setItem("due_alerts_sent_v1", JSON.stringify(sent));
+        await setItem("due_alerts_sent_v1", JSON.stringify(sent));
         showToast(`✅ ${sentCount} correo${sentCount!==1?"s":""} de vencimiento enviado${sentCount!==1?"s":""}`, "success");
       }
     };
